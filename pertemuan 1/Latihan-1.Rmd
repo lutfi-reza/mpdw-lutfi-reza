@@ -1,12 +1,11 @@
 ---
-title: "Tugas 1 MPDW"
+title: "Latihan 1 MPDW"
 author: "Lutfi Syahreza Lubis"
 date: "2023-09-02"
 output: html_document
 ---
 
 ## Library
-
 ```{r}
 library("forecast")
 library("graphics")
@@ -14,35 +13,39 @@ library("TTR")
 library("TSA")
 ```
 
-## Import Data
-
+## Importing Data
 ```{r}
 library(rio)
 data_air <- import("https://raw.githubusercontent.com/lutfi-reza/mpdw-lutfi-reza/main/data/data_air.csv")
 ```
 
-## Eksplorasi Data
+The dataset used on this occasion pertains to the sea surface elevation data in DKI Jakarta, specifically in P.A. Marina Ancol. The sea level data was measured in 2020 at 5 a.m. This daily dataset contains a one full year data, starting from January untill December.
 
+Data set yang digunakan berkaitan dengan tinggi permukaan air laut di DKI Jakarta, P.A. Marina Ancol. Data ini diambil pada tahun 2020 pukul 5 pagi. Data set harian ini berisikan data satu tahun penuh, mulai bulan Januari hingga Desember.
+
+
+## Eksplorasi Data/ Exploratory Data Analysis
 ```{r}
 View(data_air)
 str(data_air)
 dim(data_air)
 ```
+These function: View, str, dim are used to show the dataset, type, and the dimension of the dataset, sequentially.
+
+Fungsi-fungsi ini bertujuan untuk menampilkan data, menunjukkan jenis dan ukuran data.
 
 ### Mengubah data agar terbaca sebagai data deret waktu dengan fungsi `ts()` .
-
 ```{r}
 data_air.ts <- ts(data_air$tinggi_air)
 ```
+The `ts` function is used to read the dataset as time series data
 
 ### Menampilkan ringkasan data
-
 ```{r}
 summary(data_air.ts)
 ```
 
 ### Membuat plot deret waktu data
-
 ```{r}
 par(mar = c(1, 1, 1, 1))
 ts.plot(data_air.ts, xlab="Time Period ", ylab="Reading", 
@@ -50,10 +53,11 @@ ts.plot(data_air.ts, xlab="Time Period ", ylab="Reading",
 points(data_air.ts)
 ```
 
+The plot above indicates that the time series data exhibits a constant pattern.
+
 Plot di atas menunjukkan bahwa data time series memiliki pola konstan.
 
-### Membagi data per bulan
-
+### Membagi data per bulan/ Monthly data
 ```{r}
 januari <- data_air[1:29,]
 februari <- data_air[30:53,]
@@ -69,8 +73,8 @@ november <- data_air[281:304,]
 desember <- data_air[305:334,]
 ```
 
+To read the dataset as time series data
 Membuat data menjadi time series
-
 ```{r}
 januari.ts <- ts((data_air[1:29,])$tinggi_air)
 februari.ts <- ts((data_air[30:53,])$tinggi_air)
@@ -86,8 +90,7 @@ november.ts  <- ts((data_air[281:304,])$tinggi_air)
 desember.ts  <- ts((data_air[305:334,])$tinggi_air)
 ```
 
-### Eksplorasi data per bulan
-
+### Eksplorasi data per bulan/ Monthly expploratory data analysis
 ```{r}
 #Eksplorasi dengan GGPLOT per bulan
 library(ggplot2)
@@ -111,14 +114,17 @@ ggplot() +
                      plot.caption = element_text(hjust=0.5, size=12))
 ```
 
+The plot above doesn't indicate any trend.
+
 Plot data di atas menunjukkan bahwa data per bulan menyebar secara konstan, tidak terlihat adanya tren atau musim pada data.
 
 ## Single Moving Average
 
 ### Pembagian Data
 
-Pembagian data latih dan data uji dilakukan dengan perbandingan 80% data latih dan 20% data uji.
+Dividing the dataset into a 80 percent of training data and 20 percent of testing data.
 
+Pembagian data latih dan data uji dilakukan dengan perbandingan 80% data latih dan 20% data uji.
 ```{r}
 #Membagi data training dan testing
 data_training <- data_air[1:267,]
@@ -131,8 +137,9 @@ testing.ts <- ts(data_testing$tinggi_air)
 
 ### Eksplorasi data training dan testing
 
-Eksplorasi dilakukan pada seluruh data, data training, dan data testing.
+Exploratory analysis on the dataset thoroughly, training data, and testing data.
 
+Eksplorasi dilakukan pada seluruh data, data training, dan data testing.
 ```{r}
 #Eksplorasi keseluruhan data
 plot(data_air.ts, col="red",main="Plot Semua Data")
@@ -161,6 +168,8 @@ ggplot() +
 ```
 
 ### Single Moving Average (SMA)
+
+The SMA methods is suitable for constant pattern of time series data.
 
 Metode SMA cocok digunakan untuk data konstan.
 
@@ -192,10 +201,12 @@ lines(data.gab[,3],col="red",lwd=2)
 legend("topleft",c("data aktual","data pemulusan","data peramalan"), lty=8, col=c("black","green","red"), cex=0.5)
 ```
 
+The following syntaxes are used to measure the accuracy using SSE, MSE, and MAPE on both traning and testing data.
+
 Selanjutnya perhitungan akurasi dilakukan dengan ukuran akurasi *Sum Squares Error* (SSE), *Mean Square Error* (MSE) dan *Mean Absolute Percentage Error* (MAPE). Perhitungan akurasi dilakukan baik pada data latih maupun pada data uji.
 
 ```{r}
-#Menghitung nilai keakuratan data latih
+#Menghitung nilai keakuratan data traning
 error_train.sma = training.ts-data.ramal[1:length(training.ts)]
 SSE_train.sma = sum(error_train.sma[12:length(training.ts)]^2)
 MSE_train.sma = mean(error_train.sma[12:length(training.ts)]^2)
@@ -275,4 +286,6 @@ akurasitesting2
 #Menggunakan fungsi `accuracy`
 accuracy(ramalan2, data_testing$tinggi_air)
 ```
+According to the smoothing technique using SMA, the resulting MAPE stands at 9.348629 for the training dataset and 6.46844 for the testing dataset. Conversely, the SES method yields MAPE values of 5.793112 for the training dataset and 4.900716 for the testing dataset. Consequently, the SES smoothing method demonstrates superior optimality compared to SMA for the provided dataset.
 
+Berdasarkan metode pemulusan menggunakan SMA dihasilkan nilai MAPE sebesar 9.348629 untuk data training dan 6.46844 untuk data testing. Sedangkan, metode pemulusan SES menghasilkan nilai MAPE sebesar 5.793112 untuk data training dan 4.900716 data testing. Oleh karena itu, metode pemulusan SES lebih optimal dibandingkan SMA untuk data yang digunakan.
