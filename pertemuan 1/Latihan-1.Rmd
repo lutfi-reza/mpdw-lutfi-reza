@@ -169,7 +169,7 @@ ggplot() +
 
 ### Single Moving Average (SMA)
 
-The SMA methods is suitable for constant pattern of time series data.
+The SMA method is suitable for a constant pattern of time series data.
 
 Metode SMA cocok digunakan untuk data konstan.
 
