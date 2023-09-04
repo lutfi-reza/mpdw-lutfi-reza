@@ -113,7 +113,7 @@ ggplot() +
 
 Plot data di atas menunjukkan bahwa data per bulan menyebar secara konstan, tidak terlihat adanya tren atau musim pada data.
 
-## Single Moving Average & Double Moving Average
+## Single Moving Average
 
 ### Pembagian Data
 
@@ -224,75 +224,55 @@ akurasi_test.sma
 
 ```{r}
 #Cara 1 (fungsi ses)
-ses.1 <- ses(training.ts, h = 10, alpha = 0.2)
-plot(ses.1)
-ses.1
-
-ses.2<- ses(training.ts, h = 10, alpha = 0.7)
-plot(ses.2)
-ses.2
+ses1 <- ses(training.ts, h=67, alpha = NULL)
+plot(ses1)
+ses1
 ```
-
+### Plot pemulusan data latih menggunakan SES
 ```{r}
-autoplot(ses.1) +
-  autolayer(fitted(ses.1), series="Fitted") +
+autoplot(ses1) +
+  autolayer(fitted(ses1), series="Fitted") +
   ylab("Tinggi Air") + xlab("Periode")
 ```
 
 ```{r}
 #Cara 2 (fungsi Holtwinter)
-ses1<- HoltWinters(training.ts, gamma = FALSE, beta = FALSE, alpha = 0.2)
-plot(ses1)
-
-#ramalan
-ramalan1<- forecast(ses1, h=10)
-ramalan1
-
-ses2<- HoltWinters(training.ts, gamma = FALSE, beta = FALSE, alpha = 0.7)
+ses2 <- HoltWinters(training.ts, gamma = FALSE, beta = FALSE, alpha = NULL)
 plot(ses2)
 
 #ramalan
-ramalan2<- forecast(ses2, h=10)
+ramalan2<- forecast(ses1, h=67)
 ramalan2
+
 ```
 
-```{r}
-#SES
-ses.opt <- ses(training.ts, h = 10, alpha = NULL)
-plot(ses.opt)
-ses.opt
 
-#Lamda Optimum Holt Winter
-sesopt<- HoltWinters(training.ts, gamma = FALSE, beta = FALSE,alpha = NULL)
-sesopt
-plot(sesopt)
-
-#ramalan
-ramalanopt<- forecast(sesopt, h=10)
-ramalanopt
-```
-
-#### Akurasi Data Latih
+#### Akurasi Data Training
 
 ```{r}
 #Keakuratan Metode
 #Pada data training
-SSE1<-ses1$SSE
-MSE1<-ses1$SSE/length(training.ts)
-RMSE1<-sqrt(MSE1)
-
-akurasi1 <- matrix(c(SSE1,MSE1,RMSE1))
-row.names(akurasi1)<- c("SSE", "MSE", "RMSE")
-colnames(akurasi1) <- c("Akurasi lamda=0.2")
-akurasi1
-
 SSE2<-ses2$SSE
 MSE2<-ses2$SSE/length(training.ts)
 RMSE2<-sqrt(MSE2)
 
 akurasi2 <- matrix(c(SSE2,MSE2,RMSE2))
 row.names(akurasi2)<- c("SSE", "MSE", "RMSE")
-colnames(akurasi2) <- c("Akurasi lamda=0.7")
+colnames(akurasi2) <- c("Akurasi lamda = NULL")
 akurasi2
 
 ```
+#### Akurasi Data Testing
+```{r}
+selisih2<-ramalan2$mean-data_testing$tinggi_air
+SSEtesting2<-sum(selisih2^2)
+MSEtesting2<-SSEtesting2/length(data_testing)
+
+akurasitesting2 <- matrix(c(MSEtesting2))
+row.names(akurasitesting2)<- c("MSE2")
+akurasitesting2
+
+#Menggunakan fungsi `accuracy`
+accuracy(ramalan2, data_testing$tinggi_air)
+```
+
