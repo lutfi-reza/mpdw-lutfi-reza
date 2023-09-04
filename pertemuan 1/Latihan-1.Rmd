@@ -1,0 +1,298 @@
+---
+title: "Tugas 1 MPDW"
+author: "Lutfi Syahreza Lubis"
+date: "2023-09-02"
+output: html_document
+---
+
+## Library
+
+```{r}
+library("forecast")
+library("graphics")
+library("TTR")
+library("TSA")
+```
+
+## Import Data
+
+```{r}
+library(rio)
+data_air <- import("https://raw.githubusercontent.com/lutfi-reza/mpdw-lutfi-reza/main/data/data_air.csv")
+```
+
+## Eksplorasi Data
+
+```{r}
+View(data_air)
+str(data_air)
+dim(data_air)
+```
+
+### Mengubah data agar terbaca sebagai data deret waktu dengan fungsi `ts()` .
+
+```{r}
+data_air.ts <- ts(data_air$tinggi_air)
+```
+
+### Menampilkan ringkasan data
+
+```{r}
+summary(data_air.ts)
+```
+
+### Membuat plot deret waktu data
+
+```{r}
+par(mar = c(1, 1, 1, 1))
+ts.plot(data_air.ts, xlab="Time Period ", ylab="Reading", 
+        main = "Time Series Plot")
+points(data_air.ts)
+```
+
+Plot di atas menunjukkan bahwa data time series memiliki pola konstan.
+
+### Membagi data per bulan
+
+```{r}
+januari <- data_air[1:29,]
+februari <- data_air[30:53,]
+maret <- data_air[54:84,]
+april <- data_air[85:101,]
+mei <- data_air[102:128,]
+juni <- data_air[129:158,]
+juli <- data_air[159:189,]
+agustus <- data_air[190:220,]
+september <- data_air[221:250,]
+oktober <- data_air[251:280,]
+november <- data_air[281:304,]
+desember <- data_air[305:334,]
+```
+
+Membuat data menjadi time series
+
+```{r}
+januari.ts <- ts((data_air[1:29,])$tinggi_air)
+februari.ts <- ts((data_air[30:53,])$tinggi_air)
+maret.ts  <- ts((data_air[54:84,])$tinggi_air)
+april.ts  <-ts(( data_air[85:101,])$tinggi_air)
+mei.ts  <- ts((data_air[102:128,])$tinggi_air)
+juni.ts  <- ts((data_air[129:158,])$tinggi_air)
+juli.ts  <- ts((data_air[159:189,])$tinggi_air)
+agustus.ts  <- ts((data_air[190:220,])$tinggi_air)
+september.ts  <- ts((data_air[221:250,])$tinggi_air)
+oktober.ts  <- ts((data_air[251:280,])$tinggi_air)
+november.ts  <- ts((data_air[281:304,])$tinggi_air)
+desember.ts  <- ts((data_air[305:334,])$tinggi_air)
+```
+
+### Eksplorasi data per bulan
+
+```{r}
+#Eksplorasi dengan GGPLOT per bulan
+library(ggplot2)
+ggplot() + 
+  geom_line(data = januari, aes(x = periode, y = tinggi_air, col = "Data Januari")) +
+  geom_line(data = februari, aes(x = periode, y = tinggi_air, col = "Data Februari")) +
+  geom_line(data = maret, aes(x = periode, y = tinggi_air, col = "Data Maret")) +
+  geom_line(data = april, aes(x = periode, y = tinggi_air, col = "Data April")) +
+  geom_line(data = mei, aes(x = periode, y = tinggi_air, col = "Data Mei")) +
+  geom_line(data = juni, aes(x = periode, y = tinggi_air, col = "Data Juni")) +
+  geom_line(data = juli, aes(x = periode, y = tinggi_air, col = "Data Juli")) +
+  geom_line(data = agustus, aes(x = periode, y = tinggi_air, col = "Data Agustus")) +
+  geom_line(data = september, aes(x = periode, y = tinggi_air, col = "Data September")) +
+  geom_line(data = oktober, aes(x = periode, y = tinggi_air, col = "Data Oktober")) +
+  geom_line(data = november, aes(x = periode, y = tinggi_air, col = "Data November")) +
+  geom_line(data = desember, aes(x = periode, y = tinggi_air, col = "Data Desember")) +
+  labs(x = "Periode Waktu", y = "Tinggi Air", color = "Legend") +
+  scale_colour_manual(name="Keterangan:", breaks = c("Data Januari", "Data Februari","Data Maret","Data April", "Data Mei", "Data Juni", "Data Juli", "Data Agustus", "Data September","Data Oktober", "Data November", "Data Desember"),
+                      values = rainbow(12)) + 
+  theme_bw() + theme(legend.position = "bottom",
+                     plot.caption = element_text(hjust=0.5, size=12))
+```
+
+Plot data di atas menunjukkan bahwa data per bulan menyebar secara konstan, tidak terlihat adanya tren atau musim pada data.
+
+## Single Moving Average & Double Moving Average
+
+### Pembagian Data
+
+Pembagian data latih dan data uji dilakukan dengan perbandingan 80% data latih dan 20% data uji.
+
+```{r}
+#Membagi data training dan testing
+data_training <- data_air[1:267,]
+data_testing <- data_air[268:334,]
+
+#Membuat plot deret waktu data dari data training dan testing
+training.ts <- ts(data_training$tinggi_air)
+testing.ts <- ts(data_testing$tinggi_air)
+```
+
+### Eksplorasi data training dan testing
+
+Eksplorasi dilakukan pada seluruh data, data training, dan data testing.
+
+```{r}
+#Eksplorasi keseluruhan data
+plot(data_air.ts, col="red",main="Plot Semua Data")
+points(data_air.ts)
+
+#Eksplorasi data latih (training)
+plot(training.ts, col="blue",main="Plot Data Training")
+points(training.ts)
+
+#Eksplorasi data uji (test)
+plot(testing.ts, col="blue",main="Plot Data Testing")
+points(testing.ts)
+```
+
+```{r}
+#Eksplorasi dengan GGPLOT
+library(ggplot2)
+ggplot() + 
+  geom_line(data = data_training, aes(x = periode, y = tinggi_air, col = "Data Training")) +
+  geom_line(data = data_testing, aes(x = periode, y = tinggi_air, col = "Data Testing")) +
+  labs(x = "Periode Waktu", y = "Tinggi Air", color = "Legend") +
+  scale_colour_manual(name="Keterangan:", breaks = c("Data Training", "Data Testing"),
+                      values = c("blue", "red")) + 
+  theme_bw() + theme(legend.position = "bottom",
+                     plot.caption = element_text(hjust=0.5, size=12))
+```
+
+### Single Moving Average (SMA)
+
+Metode SMA cocok digunakan untuk data konstan.
+
+```{r}
+data.sma <- SMA(training.ts)
+data.sma
+```
+
+```{r}
+data.ramal <- c(NA,data.sma)
+data.ramal #forecast 1 periode ke depan
+```
+
+### Peramalan ke 67 periode ke depan (sejumlah data testing)
+
+```{r}
+data.gab<-cbind(aktual=c(training.ts,rep(NA,67)),pemulusan=c(data.sma,rep(NA,67)),ramalan=c(data.ramal,rep(data.ramal[length(data.ramal)],66)))
+data.gab #forecast 67 periode ke depan
+
+```
+
+### Plot deret waktu data peramalan
+
+```{r}
+ts.plot(data_air.ts, xlab="Time Period ", ylab="Tinggi Air", main= "SMA N = 11 Data Tinggi Air")
+points(data_air.ts)
+lines(data.gab[,2],col="green",lwd=2)
+lines(data.gab[,3],col="red",lwd=2)
+legend("topleft",c("data aktual","data pemulusan","data peramalan"), lty=8, col=c("black","green","red"), cex=0.5)
+```
+
+Selanjutnya perhitungan akurasi dilakukan dengan ukuran akurasi *Sum Squares Error* (SSE), *Mean Square Error* (MSE) dan *Mean Absolute Percentage Error* (MAPE). Perhitungan akurasi dilakukan baik pada data latih maupun pada data uji.
+
+```{r}
+#Menghitung nilai keakuratan data latih
+error_train.sma = training.ts-data.ramal[1:length(training.ts)]
+SSE_train.sma = sum(error_train.sma[12:length(training.ts)]^2)
+MSE_train.sma = mean(error_train.sma[12:length(training.ts)]^2)
+MAPE_train.sma = mean(abs((error_train.sma[12:length(training.ts)]/training.ts[12:length(training.ts)])*100))
+
+akurasi_train.sma <- matrix(c(SSE_train.sma, MSE_train.sma, MAPE_train.sma))
+row.names(akurasi_train.sma)<- c("SSE", "MSE", "MAPE")
+colnames(akurasi_train.sma) <- c("Akurasi m = 11")
+akurasi_train.sma
+```
+
+```{r}
+#Menghitung nilai keakuratan data uji
+error_test.sma = testing.ts-data.gab[268:334,3]
+SSE_test.sma = sum(error_test.sma^2)
+MSE_test.sma = mean(error_test.sma^2)
+MAPE_test.sma = mean(abs((error_test.sma/testing.ts*100)))
+
+akurasi_test.sma <- matrix(c(SSE_test.sma, MSE_test.sma, MAPE_test.sma))
+row.names(akurasi_test.sma)<- c("SSE", "MSE", "MAPE")
+colnames(akurasi_test.sma) <- c("Akurasi m = 11")
+akurasi_test.sma
+```
+
+## Single Exponential Smoothing
+
+```{r}
+#Cara 1 (fungsi ses)
+ses.1 <- ses(training.ts, h = 10, alpha = 0.2)
+plot(ses.1)
+ses.1
+
+ses.2<- ses(training.ts, h = 10, alpha = 0.7)
+plot(ses.2)
+ses.2
+```
+
+```{r}
+autoplot(ses.1) +
+  autolayer(fitted(ses.1), series="Fitted") +
+  ylab("Tinggi Air") + xlab("Periode")
+```
+
+```{r}
+#Cara 2 (fungsi Holtwinter)
+ses1<- HoltWinters(training.ts, gamma = FALSE, beta = FALSE, alpha = 0.2)
+plot(ses1)
+
+#ramalan
+ramalan1<- forecast(ses1, h=10)
+ramalan1
+
+ses2<- HoltWinters(training.ts, gamma = FALSE, beta = FALSE, alpha = 0.7)
+plot(ses2)
+
+#ramalan
+ramalan2<- forecast(ses2, h=10)
+ramalan2
+```
+
+```{r}
+#SES
+ses.opt <- ses(training.ts, h = 10, alpha = NULL)
+plot(ses.opt)
+ses.opt
+
+#Lamda Optimum Holt Winter
+sesopt<- HoltWinters(training.ts, gamma = FALSE, beta = FALSE,alpha = NULL)
+sesopt
+plot(sesopt)
+
+#ramalan
+ramalanopt<- forecast(sesopt, h=10)
+ramalanopt
+```
+
+#### Akurasi Data Latih
+
+```{r}
+#Keakuratan Metode
+#Pada data training
+SSE1<-ses1$SSE
+MSE1<-ses1$SSE/length(training.ts)
+RMSE1<-sqrt(MSE1)
+
+akurasi1 <- matrix(c(SSE1,MSE1,RMSE1))
+row.names(akurasi1)<- c("SSE", "MSE", "RMSE")
+colnames(akurasi1) <- c("Akurasi lamda=0.2")
+akurasi1
+
+SSE2<-ses2$SSE
+MSE2<-ses2$SSE/length(training.ts)
+RMSE2<-sqrt(MSE2)
+
+akurasi2 <- matrix(c(SSE2,MSE2,RMSE2))
+row.names(akurasi2)<- c("SSE", "MSE", "RMSE")
+colnames(akurasi2) <- c("Akurasi lamda=0.7")
+akurasi2
+
+```
