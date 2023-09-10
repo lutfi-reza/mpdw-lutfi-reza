@@ -139,7 +139,7 @@ modelCO<-cochrane.orcutt(model)
 modelCO
 dwtest(modelCO)
 ```
-Model menggunakan Cochrane-Orcutt $$y_i=-37714.925547+19.166264x_t-0.009780 x_(t-1)-0.000401x_(t-2)$$.
+Model menggunakan Cochrane-Orcutt $$y_i=-37714.925547+19.166264x1_i-0.009780x2_i-0.000401x3_t$$.
 
 Nilai DW setelah dilakukan penanganan adalah $DW = 1.4258$. Hasil ini menunjukkan nilai DW sudah berada dalam selang antara DL dan DU sehingga sudah tidak ada autokorelasi positif. 
 
