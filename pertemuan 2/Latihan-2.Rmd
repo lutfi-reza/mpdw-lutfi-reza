@@ -40,7 +40,7 @@ data_wine <- flip(data_winee)
 summary(data_wine)
 
 
-#Membuat matriks korelasi
+# Membuat matriks korelasi
 m <- cor(data_wine) 
 
 colors <- alpha(colorRampPalette(c("blue", #Warna Bawah
