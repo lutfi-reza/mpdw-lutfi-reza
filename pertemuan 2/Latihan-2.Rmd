@@ -75,7 +75,7 @@ Plot time series dari data wine berpola tren. Terlihat kenaikan dari tahun ke ta
 model<- lm(Harga~Tahun+Panen+Produksi, data = data_wine)
 summary(model)
 ```
-$$y_i = -2.195*10^4+1.122*10^1+3.139*10^2-3.525*10^3$$
+$$y_i = -2.195*10^4+1.122*10^1X1+3.139*10^2X2-3.525*10^3X3$$
 Berdasarkan ringkasan model dapat diketahui bahwa hasil uji F memiliki *p-value* \< $\alpha$ (5%). Artinya, minimal terdapat satu variabel yang berpengaruh nyata terhadap model.
 
 Selanjutnya dapat dilihat juga nilai $R^2=0.7391$. Artinya, sebesar 73.91% keragaman Harga wine dapat dijelaskan oleh peubah Tahun, Panen, dan Produksi. Hasil ini menunjukkan hasil yang bagus, seolah mendapatkan hasil terbaik. Namun, kita perlu melakukan uji terhadap sisaannya seperti berikut ini.
