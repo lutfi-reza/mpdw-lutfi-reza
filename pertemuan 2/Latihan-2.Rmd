@@ -141,7 +141,7 @@ dwtest(modelCO)
 ```
 Model menggunakan Cochrane-Orcutt $$y_i=-37714.925547+19.166264x1_i-0.009780x2_i-0.000401x3_t$$.
 
-Nilai DW setelah dilakukan penanganan adalah $DW = 1.4258$. Hasil ini menunjukkan nilai DW sudah berada dalam selang antara DL dan DU sehingga sudah tidak ada autokorelasi positif. 
+Nilai DW setelah dilakukan penanganan adalah $DW = 1.4258$. Hasil ini menunjukkan nilai DW sudah berada dalam selang antara DU \< DW \< 4-DU sehingga sudah tidak ada autokorelasi positif. 
 
 ```{r}
 #Rho optimum
@@ -238,8 +238,7 @@ Setelah dilakukan tranformasi balik, didapatkan model dengan metode Hildreth-Lu 
 dwtest(modelHL)
 ```
 Hasil uji Durbin-Watson juga menunjukkan bahwa nilai DW sebesar $1.426$
-berada pada selang daerah tidak ada autokorelasi, yaitu pada rentang DL
-\< DW \< DU. 
+berada pada selang daerah tidak ada autokorelasi, yaitu pada rentang DU \< DW \< 4-DU. 
 
 Terakhir, akan dibandingkan nilai SSE dari ketiga metode (metode awal,
 metode Cochrane-Orcutt, dan Hildreth-Lu).
