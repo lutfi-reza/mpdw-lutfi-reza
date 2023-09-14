@@ -1,0 +1,272 @@
+---
+title: "Latihan 3 MPDW"
+author: "Lutfi Syahreza Lubis"
+date: "2023-09-14"
+output: html_document
+---
+
+# Data Preparation
+
+## Packages
+```{r}
+library(dLagM)
+library(dynlm)
+library(MLmetrics)
+library(lmtest)
+library(car)
+```
+
+## Importing Data
+```{r}
+data_winee <- rio::import("https://raw.githubusercontent.com/lutfi-reza/mpdw-lutfi-reza/main/data/data_wine.csv")
+
+# membalik data
+flip <- function(data){
+  new <- data[rev(rownames(data)),]
+  rownames(new) <- NULL
+  new
+}
+
+# data yang akan dipakai
+data_wine <- flip(data_winee)
+```
+
+```{r}
+t <- data_wine$Tahun
+Xt <- data_wine$Panen
+Yt <- data_wine$Harga
+
+data_lag1 <- cbind(t, Xt, Yt)
+data_lag <- as.data.frame(data_lag1)
+```
+
+
+## Dividing dataset into training and testing data
+```{r}
+train <- data_lag[1:33,]
+test <- data_lag[34:41,]
+```
+
+## Time series data
+```{r}
+train.ts<-ts(train)
+test.ts<-ts(test)
+data_lag.ts<-ts(data_lag)
+```
+
+# Model Koyck
+
+Model Koyck didasarkan pada asumsi bahwa semakin jauh jarak lag peubah independen dari periode sekarang maka semakin kecil pengaruh peubah lag terhadap peubah dependen.
+
+Koyck mengusulkan suatu metode untuk menduga model dinamis distributed lag dengan mengasumsikan bahwa semua koefisien $\beta$ mempunyai tanda sama.
+
+Model kyock merupakan jenis paling umum dari model infinite distributed lag dan juga dikenal sebagai geometric lag
+
+$$
+y_t=a(1-\lambda)+\beta_0X_t+\beta_1Z_t+\lambda Y_{t-1}+V_t
+$$
+dengan $$V_t=u_t-\lambda u_{t-1}$$
+
+## Koyck Modelling
+```{r}
+#Koyck Model
+model.koyck <- dLagM :: koyckDlm(x=train$Xt , y=train$Yt)
+summary(model.koyck)
+```
+Dari hasil tersebut, didapat bahwa peubah $x_t$ dan $y_{t-1}$ memiliki nilai $P-Value<0.05$. Hal ini menunjukkan bahwa peubah $x_t$ dan $y_{t-1}$ berpengaruh signifikan terhadap $y$. Adapun model keseluruhannya adalah sebagai berikut
+
+$$
+\hat{Y_t}=45.191046+0.000454X_t+926273Y_{t-1}
+$$
+```{r}
+AIC(model.koyck)
+```
+```{r}
+BIC(model.koyck)
+```
+## Koyck Forecasting
+Berikut adalah hasil peramalan y untuk 8 periode kedepan menggunakan model koyck
+```{r}
+(fore.koyck <- forecast(model = model.koyck, x=test$Xt, h=8))
+```
+## Koyck Model Accuracy
+```{r}
+#mape data testing
+mape.koyck <- MAPE(fore.koyck$forecasts, test$Yt)
+
+#akurasi data training
+mape_train <- dLagM::GoF(model.koyck)["MAPE"]
+
+c("MAPE_testing" = mape.koyck, "MAPE_training" = mape_train)
+```
+
+# Regression with Distributed Lag
+Fungsi `dlm()` akan menerapkan model lag terdistribusi dengan satu atau lebih prediktor. Nilai `x` dan `y` tidak perlu sebagai objek *time series* (`ts`). $q$ adalah integer yang mewakili panjang *lag* yang terbatas.
+
+## DLM Modelling with Optimum Lag
+```{r}
+#penentuan lag optimum 
+lagop <- finiteDLMauto(formula=Yt ~ Xt,
+              data = data.frame(train),model.type = "dlm",error.type = "AIC");lagop
+```
+Diperolah lag optimum untuk peubah unique visits adalah 10 hari sebelumnya.
+
+## Distributed Lag Modelling
+```{r}
+model.dlm = dLagM::dlm(x = train$Xt,y = train$Yt , q = 10) 
+summary(model.dlm)
+```
+Dari hasil diatas, didapat bahwa $P-value$ dari intercept $<0.05$, namun $P-value$ dari $x_{t-1}$ dan $x_1$ hingga $x_{10}$ $>0.05$. Hal ini menunjukkan bahwa intercept berpengaruh signifikan terhadap $y$, namun tidak untuk $x_{t-1}$ dan $x_1$ hingga $x_{10}$. Adapun model keseluruhan yang terbentuk adalah sebagai berikut
+
+$$
+\hat{Y_t}=407.027953+0.030922X_t+0.055601X_{t-1}+-0.071397X_{t-2}+0.027366X_{t-3}+0.008325X_{t-4}-0.003151X_{t-5}-0.089931X_{t-6}-0.001039X_{t-7}+0.106580X_{t-8}-0.008727X_{t-9}-0.050275X_{t-10}
+$$
+Hal ini berarti harga wine tidak dipengaruhi oleh jumlah panen anggur pada 10 hari sebelumnya. Model ini cukup baik dengan nilai R-Squared 61.79%.
+
+```{r}
+AIC(model.dlm)
+```
+```{r}
+BIC(model.dlm)
+```
+## DLM Forecasting
+Berikut adalah hasil peramalan y untuk 8 periode kedepan menggunakan model DLM
+```{r}
+#ramalan
+(fore.dlm <- forecast(model = model.dlm, x=test$Xt, h=8))
+```
+#DLM Accuracy
+```{r}
+#mape data testing
+mape.dlm <- MAPE(fore.dlm$forecasts, test$Yt)
+
+#akurasi data training
+mape_train <- dLagM::GoF(model.dlm)["MAPE"]
+
+c("MAPE_testing" = mape.dlm, "MAPE_training" = mape_train)
+```
+# Autoregressive / Dynamic Regression Model
+
+Peubah dependen dipengaruhi oleh peubah independen pada waktu sekarang, serta dipengaruhi juga oleh peubah dependen itu sendiri pada satu waktu yang lalu maka model tersebut disebut *autoregressive* (Gujarati 2004)
+
+## ARDLM Modelling
+Dengan $p$ adalah integer yang mewakili panjang *lag* yang terbatas dan $q$ adalah integer yang merepresentasikan ordo dari proses *autoregressive*.
+
+```{r}
+#optimum p & q
+pqop <- ardlBoundOrders(data = data.frame(data_lag),ic = "AIC", formula = Yt ~ Xt )
+c(p=pqop$p$Xt, q=pqop$q)
+
+min_p=c()
+for(i in 1:15){
+  min_p[i]=min(pqop$Stat.table[[i]])
+}
+q_opt=which(min_p==min(min_p, na.rm = TRUE))
+p_opt=which(pqop$Stat.table[[q_opt]] == 
+              min(pqop$Stat.table[[q_opt]], na.rm = TRUE))
+data.frame("q_optimum" = q_opt, "p_optimum" = p_opt, 
+           "AIC"=pqop$min.Stat)
+```
+Berdasarkan penentuan nilai p dan q optimum diperoleh lagi optimum untuk peubah Xt atau panen adalah 5 hari sebelumnya dan lag optimum untuk peubah Yt atau harga wine adalah 15 hari sebelumnya. 
+
+```{r}
+#ARDL MODEL
+model.ardl = ardlDlm(x = train$Xt, y = train$Yt, p = 5 , q = 15)
+summary(model.ardl)
+```
+
+Melalui model ini diperoleh NaN pada error, t value, dan p-value. Oleh karena itu, nilai p dan q optimum ditelusuri lagi secara manual. Diperoleh p = 7 dan q = 11.
+
+```{r}
+model.ardl1 = ardlDlm(x = train$Xt, y = train$Yt, p = 7 , q = 11)
+summary(model.ardl1)
+```
+Melalui model ARDL tidak diperoleh peubah yang berpengaruh secara signifikan. Model ini cukup baik dengan nilai R-Square sebesar 96.84%.
+
+```{r}
+AIC(model.ardl1)
+```
+```{r}
+BIC(model.ardl1)
+```
+## ARDL Forecasting
+```{r}
+(fore.ardl <- forecast(model = model.ardl1, x=test$Xt, h=8))
+```
+## ARDL Accuracy
+```{r}
+# mape akurasi testing
+mape.ardl <- MAPE(fore.ardl$forecasts, test$Yt) #data testing
+
+# mape akurasi data training
+mape_train <- GoF(model.ardl1)["MAPE"]
+
+c("MAPE_testing" = mape.ardl, "MAPE_training" = mape_train)
+```
+# Comparison of the Three Methods for Handling Autocorrelation
+
+## Comparison according to mape value
+```{r}
+akurasi <- matrix(c(mape.koyck, mape.dlm, mape.ardl))
+row.names(akurasi)<- c("Koyck","DLM","Autoregressive")
+colnames(akurasi) <- c("MAPE")
+akurasi
+```
+Berdasarkan nilai MAPE, model paling optimum didapat pada Model Koyck karena memiliki nilai MAPE yang terkecil.
+
+## Comparison plot of actual data with three autocorrelation handling methods
+
+```{r}
+par(mfrow=c(1,1))
+plot(test$Xt, test$Yt, type="b", col="black")
+plot(test$Xt, fore.koyck$forecasts,col="red")
+plot(test$Xt, fore.dlm$forecasts,col="blue")
+plot(test$Xt, fore.ardl$forecasts,col="green")
+
+plot(test$Xt, test$Yt, type="b", col="black")
+points(test$Xt, fore.koyck$forecasts,col="red")
+points(test$Xt, fore.dlm$forecasts,col="blue")
+points(test$Xt, fore.ardl$forecasts,col="green")
+legend("topleft",c("Aktual", "Koyck","DLM", "ARDLM"), lty=1, col=c("black","red","blue","green"), cex=0.8)
+```
+Hasil dari visualisasi di atas menunjukkan bahwa model Koyck merupakan metode yang paling sesuai untuk peramalan data wine karena memiliki pola data aktual, walaupun masih sangat jauh. Hal ini terjadi karena data testing hanya sejumlah 8 sehingga untuk mendapatkan model yang lebih akurat data testing harus ditambahkan.
+
+# Model Diagnostics
+
+## Uji Non Autokorelasi
+```{r}
+#Breusch-Godfrey test
+bgtest(model.koyck$model)
+
+#Durbin-Watson test
+dwtest(model.koyck$model)
+```
+Berdasarkan uji Breusch-Godfrey dan uji Durbin-Watson dihasilkan nilai p-value > alpha 5% sehingga tidak terjadi autokorelasi. Autokorelasi pada model ini berhasil ditangani.
+
+## Uji heterogenitas
+```{r}
+bptest(model.koyck$model)
+```
+Berdasarkan uji Breusch-Pagan dihasilkan nilai p-value > alpha 5% sehingga tidak terjadi heteroskedastisitas pada model.
+
+## Uji Normalitas
+```{r}
+ks.test(model.koyck$model$residuals, "pnorm")
+```
+Berdasarkan uji uji Kolmogorov-Smirnov dihasilkan nilai p-value < alpha 5% sehingga residual data tidak menyebar normal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
