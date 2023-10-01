@@ -1,0 +1,158 @@
+---
+title: "Latihan-5"
+author: "Lutfi Syahreza Lubis"
+date: "2023-09-26"
+output: html_document
+---
+
+## Used Packages 
+```{r}
+library(ggplot2)
+library(tsibble)
+library(tseries)
+library(MASS)
+```
+
+## Importing data
+```{r}
+data_air <- rio::import("https://raw.githubusercontent.com/lutfi-reza/mpdw-lutfi-reza/main/data/data_air.csv")
+```
+
+## Plot Time Series
+```{r}
+data_air.ts <- ts(data_air$tinggi_air)
+par(mar = c(1, 1, 1, 1))
+ts.plot(data_air.ts, xlab="Time Period ", ylab="Reading", 
+        main = "Time Series Plot")
+points(data_air.ts)
+```
+
+### Plot ACF
+```{r}
+acf(data_air$tinggi_air)
+```
+Berdasarkan plot ACF, terlihat bahwa plot ACF tinggi_air pada data tersebut cenderung *tails off* dan membentuk gelombang sinus.
+
+### Uji ADF
+```{r}
+tseries::adf.test(data_air$tinggi_air)
+```
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.01 yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+### Plot Box-Cox
+```{r}
+index <- seq(1:334) ## 200 jumlah data
+bc = boxcox(data_air$tinggi_air~index, lambda = seq(0,4,by=0.01)) #stas data kita
+#Nilai Rounded Lambda
+lambda1 <- bc$x[which.max(bc$y)]
+lambda1
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)] #rumus box coxnya
+```
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **1,7** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0,95** dan batas atas **2,5**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
+
+### Partisi Data
+
+#### Bagian 1
+
+```{r}
+dt_air1 <- data_air$tinggi_air[1:175] |> ts()
+mean(dt_air1)
+var(dt_air1)
+```
+## Plot Time Series Data Partisi Bagian 1
+```{r}
+dt_air1.ts <- ts(dt_air1)
+par(mar = c(1, 1, 1, 1))
+ts.plot(dt_air1.ts, xlab="Time Period ", ylab="Reading", 
+        main = "Time Series Plot")
+points(dt_air1.ts)
+```
+Plot deret waktu di atas menunjukkan bahwa data stasioner dalam rataan, ditandai dengan data yang menyebar di sekitar nilai tengahnya (1830.629) dan stasioner dalam ragam, ditandai dengan lebar pita yang cenderung sama.
+
+#### Plot ACF
+
+```{r}
+acf(dt_air1)
+```
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut cenderung *tails off* dan membentuk gelombang sinus.
+
+#### Uji ADF
+
+```{r}
+tseries::adf.test(dt_air1)
+```
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.01 yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+#### Plot Boxcox
+```{r}
+index <- seq(1:175)
+bc = boxcox(dt_air1~index, lambda = seq(-2,6,by=1))
+#Nilai Rounded Lambda
+lambda <- bc$x[which.max(bc$y)]
+lambda
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+```
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **2.686869** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-1,03** dan batas atas **5,52**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
+
+
+#### Bagian 2
+
+```{r}
+dt_air2 <- data_air$tinggi_air[1:250] |> ts()
+mean(dt_air2)
+var(dt_air2)
+```
+
+## Plot Time Series Data Partisi Bagian 2
+```{r}
+dt_air2.ts <- ts(dt_air2)
+par(mar = c(1, 1, 1, 1))
+ts.plot(dt_air2.ts, xlab="Time Period ", ylab="Reading", 
+        main = "Time Series Plot")
+points(dt_air2.ts)
+```
+
+Plot deret waktu di atas menunjukkan bahwa data stasioner dalam rataan, ditandai dengan data yang menyebar di sekitar nilai tengahnya (1830.629) dan stasioner dalam ragam, ditandai dengan lebar pita yang cenderung sama.
+
+#### Plot ACF
+
+```{r}
+acf(dt_air2)
+```
+
+Berdasarkan plot ACF, terlihat bahwa plot ACF pada data tersebut cenderung *tails off* dan membentuk gelombang sinus.
+
+#### Uji ADF
+
+```{r}
+tseries::adf.test(dt_air2)
+```
+
+$H_0$ : Data tidak stasioner dalam rataan
+
+$H_1$ : Data stasioner dalam rataan
+
+Berdasarkan uji ADF tersebut, didapat *p-value* sebesar 0.01 yang lebih kecil dari taraf nyata 5% sehingga tolak $H_0$ dan menandakan bahwa data stasioner dalam rataan. Hal ini sesuai dengan hasil eksplorasi menggunakan plot time series dan plot ACF.
+
+#### Plot Boxcox
+```{r}
+index <- seq(1:250)
+bc = boxcox(dt_air2~index, lambda = seq(-2,6,by=1))
+#Nilai Rounded Lambda
+lambda2 <- bc$x[which.max(bc$y)]
+lambda2
+#SK
+bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
+```
+
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **1.878788** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-1,03** dan batas atas **5,52**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
