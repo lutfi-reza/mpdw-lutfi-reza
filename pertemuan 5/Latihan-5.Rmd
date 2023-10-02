@@ -102,7 +102,7 @@ lambda
 #SK
 bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
 ```
-Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **2.686869** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-1,03** dan batas atas **5,52**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **2.686869** dan pada selang kepercayaan 95% nilai memiliki batas bawah **1.555556** dan batas atas **3.818182**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data tidak stasioner dalam ragam.
 
 
 #### Bagian 2
@@ -155,4 +155,4 @@ lambda2
 bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)]
 ```
 
-Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **1.878788** dan pada selang kepercayaan 95% nilai memiliki batas bawah **-1,03** dan batas atas **5,52**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **1.878788** dan pada selang kepercayaan 95% nilai memiliki batas bawah **1.070707** dan batas atas **2.767677**. Selang tersebut tidak memuat nilai satu sehingga dapat dikatakan bahwa data tidak stasioner dalam ragam.
