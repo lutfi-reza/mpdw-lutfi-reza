@@ -53,7 +53,7 @@ lambda1
 #SK
 bc$x[bc$y > max(bc$y) - 1/2 * qchisq(.95,1)] #rumus box coxnya
 ```
-Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **1,7** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0,95** dan batas atas **2,5**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data bangkitan stasioner dalam ragam.
+Gambar di atas menunjukkan nilai *rounded value* ($\lambda$) optimum sebesar **1,7** dan pada selang kepercayaan 95% nilai memiliki batas bawah **0,95** dan batas atas **2,5**. Selang tersebut memuat nilai satu sehingga dapat dikatakan bahwa data stasioner dalam ragam.
 
 ### Partisi Data
 
