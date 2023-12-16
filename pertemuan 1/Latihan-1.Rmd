@@ -137,7 +137,7 @@ testing.ts <- ts(data_testing$tinggi_air)
 
 ### Eksplorasi data training dan testing
 
-Exploratory analysis on the thorough dataset, training data, and testing data.
+Exploratory analysis on the dataset thoroughly, training data, and testing data.
 
 Eksplorasi dilakukan pada seluruh data, data training, dan data testing.
 ```{r}
@@ -169,7 +169,7 @@ ggplot() +
 
 ### Single Moving Average (SMA)
 
-The SMA method is suitable for a constant pattern of time series data.
+The SMA methods is suitable for constant pattern of time series data.
 
 Metode SMA cocok digunakan untuk data konstan.
 
